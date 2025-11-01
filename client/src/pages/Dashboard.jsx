@@ -13,7 +13,7 @@ const Dashboard = () => {
     if (favorites.length > 0) {
       favorites.forEach((city) => dispatch(fetchWeather(city)));
     } else {
-      dispatch(fetchWeather("London"));
+      dispatch(fetchWeather(""));
     }
   }, [dispatch, favorites]);
   return (

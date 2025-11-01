@@ -1,10 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchWeather } from "./weatherThunks";
+import { fetchWeather, fetchSearchResults } from "./weatherThunks";
 
 const weatherSlice = createSlice({
   name: "weather",
   initialState: {
     cities: [],
+    searchResults: [],
     unit: "celsius",
     status: "idle",
     error: null,
@@ -37,6 +38,9 @@ const weatherSlice = createSlice({
       .addCase(fetchWeather.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+      })
+      .addCase(fetchSearchResults.fulfilled, (state, action) => {
+        state.searchResults = action.payload.results || [];
       });
   },
 });

@@ -1,9 +1,9 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": {} }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://weather-analytics-dashboar.vercel.app/api/:path*"
+    }
   ]
 }

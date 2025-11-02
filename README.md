@@ -76,11 +76,12 @@ Fully **responsive** layout that adapts to mobile, tablet, and desktop.
 
 ---
 
-## 🧩 System Architecture
+##  System Architecture
 
 The **frontend** communicates with a lightweight **Express backend** that handles API calls to WeatherAPI.  
 The backend **caches responses** temporarily to improve performance.  
 The client uses **Redux** for centralized state and **Recharts** for all visualizations — keeping everything smooth, reactive, and scalable.
+
 
 
 

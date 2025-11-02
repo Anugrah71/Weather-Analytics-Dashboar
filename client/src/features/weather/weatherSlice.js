@@ -7,6 +7,7 @@ const weatherSlice = createSlice({
     cities: [],
     searchResults: [],
     unit: "celsius",
+    showSettings: false,
     status: "idle",
     error: null,
   },
@@ -19,6 +20,13 @@ const weatherSlice = createSlice({
       state.cities = state.cities.filter(
         (c) => c.name.toLowerCase() !== cityName.toLowerCase()
       );
+    },
+
+    SET_UNIT: (state, action) => {
+      state.unit = action.payload;
+    },
+    TOGGLE_SETTINGS: (state) => {
+      state.showSettings = !state.showSettings;
     },
   },
   extraReducers: (builder) => {
@@ -45,5 +53,6 @@ const weatherSlice = createSlice({
   },
 });
 
-export const { toggleUnit, removeCityWeather } = weatherSlice.actions;
+export const { toggleUnit, removeCityWeather, SET_UNIT, TOGGLE_SETTINGS } =
+  weatherSlice.actions;
 export default weatherSlice.reducer;

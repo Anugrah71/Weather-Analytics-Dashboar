@@ -1,64 +1,163 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchWeather, fetchForecast } from "../features/weather/weatherThunks";
+import {
+  fetchWeather,
+  fetchForecast,
+  fetchWeatherHistory,
+} from "../features/weather/weatherThunks";
 import CityCard from "../components/CityCard";
 import SearchBar from "../components/SearchBar";
 import DetailedView from "../components/DetailedView";
+import { SET_UNIT, TOGGLE_SETTINGS } from "../features/weather/weatherSlice"; // ✅ Make sure SET_UNIT is exported
+import SettingsModal from "../components/SettingsModal";
+import { Cloud, Settings } from "lucide-react";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { cities, status } = useSelector((state) => state.weather);
+  const { cities, status, unit, showSettings } = useSelector(
+    (state) => state.weather
+  );
+
   const favorites = useSelector((state) => state.favorites);
   const [selectedCity, setSelectedCity] = useState(null);
-  const [forecastData, setForecastData] = useState(null); // <-- ADD THIS LINE
+  const [forecastData, setForecastData] = useState(null);
 
   // Fetch initial data
-  useEffect(() => {
+ useEffect(() => {
+  const fetchAll = () => {
     if (favorites.length > 0) {
       favorites.forEach((city) => dispatch(fetchWeather(city)));
     } else {
       dispatch(fetchWeather("London"));
     }
-  }, [dispatch, favorites]);
+  };
+
+  fetchAll(); 
+
+  const interval = setInterval(fetchAll, 60 * 1000);
+
+  return () => clearInterval(interval);
+}, [dispatch, favorites]);
+
 
   const handleCityClick = async (city) => {
     console.log("Card clicked:", city);
-    const result = await dispatch(fetchForecast(city));
-    console.log("Forecast data received:", result.payload);
-    setForecastData(result.payload);
+
+    const forecastResult = await dispatch(fetchForecast(city));
+    const historyResult = await dispatch(fetchWeatherHistory(city));
+
+    console.log("History result:", historyResult);
+
+    const historyData = historyResult?.payload?.history || [];
+
+    setForecastData({
+      ...forecastResult.payload,
+      history: historyData,
+    });
+
     setSelectedCity(city);
   };
 
   const handleCloseDetail = () => setSelectedCity(null);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <h1 className="text-3xl font-bold mb-6">Weather Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
+      {/* Header */}
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center">
+            <Cloud className="text-blue-500 mr-3" size={32} />
+            <h1 className="text-2xl font-bold text-gray-800">
+              Weather Analytics
+            </h1>
+          </div>
 
-      {status === "loading" && <p>Loading...</p>}
-      <SearchBar />
+          <div className="flex-1 max-w-md mx-8 relative">
+            <div className="relative">
+              <div className="pl-10">
+                <SearchBar />
+              </div>
+            </div>
+          </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {cities.map(({ name, data }) => (
-          <CityCard
-            key={name}
-            city={data.location.name}
-            temp={data.current.temp_c}
-            condition={data.current.condition.text}
-            icon={data.current.condition.icon}
-            humidity={data.current.humidity}
-            wind_speed={data.current.wind_kph}
-            onClick={() => handleCityClick(name)}
-          />
-        ))}
-      </div>
+          <button
+            onClick={() => dispatch(TOGGLE_SETTINGS())}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Settings size={24} className="text-gray-600" />
+          </button>
+        </div>
+      </header>
 
+     {status === "loading" && (
+  <div className="flex flex-col justify-center items-center py-10 text-gray-600">
+    <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+    <p>Fetching latest weather data...</p>
+  </div>
+)}
+{status === "failed" && (
+  <div className="flex flex-col justify-center items-center py-10 text-red-600">
+    <p className="mb-3">Failed to load weather data. Please try again.</p>
+    <button
+      onClick={() => window.location.reload()}
+      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+    >
+      Retry
+    </button>
+  </div>
+)}
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Favorite Cities
+          </h2>
+          <p className="text-gray-600">
+            Click on a city card to view detailed analytics
+          </p>
+        </div>
+
+        {cities.length === 0 ? (
+          <div className="text-center py-12">
+            <Cloud size={64} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600 text-lg">
+              No favorite cities yet. Search and add some!
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {cities.map(({ name, data }) => (
+              <CityCard
+                key={name}
+                city={data.location.name}
+                temp={data.current.temp_c}
+                condition={data.current.condition.text}
+                icon={data.current.condition.icon}
+                humidity={data.current.humidity}
+                wind_speed={data.current.wind_kph}
+                onClick={() => handleCityClick(name)}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Detailed View */}
       {selectedCity && forecastData && (
         <DetailedView
           city={selectedCity}
           forecastdays={forecastData.forecast}
           onClose={handleCloseDetail}
           current={forecastData.current}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsModal
+          unit={unit}
+          onChangeUnit={(u) => dispatch(SET_UNIT(u))}
+          onClose={() => dispatch(TOGGLE_SETTINGS())}
         />
       )}
     </div>

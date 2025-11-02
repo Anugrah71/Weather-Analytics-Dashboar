@@ -19,6 +19,29 @@ export const fetchForecast = createAsyncThunk(
     return data;
   }
 );
+export const fetchWeatherHistory = createAsyncThunk(
+  "weather/fetchWeatherHistory",
+  async (city) => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const formatted = date.toISOString().split("T")[0];
+
+      const data = await getHistory(city, formatted);
+      const forecastDay = data?.forecast?.forecastday?.[0];
+
+      if (forecastDay?.day) {
+        days.push({
+          date: formatted,
+          temp_max: forecastDay.day.maxtemp_c,
+          temp_min: forecastDay.day.mintemp_c,
+        });
+      }
+    }
+    return { city, history: days.reverse() };
+  }
+);
 
 export const fetchSearchResults = createAsyncThunk(
   "weather/fetchSearchResults",

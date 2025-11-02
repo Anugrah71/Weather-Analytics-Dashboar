@@ -11,8 +11,9 @@ router.get("/current", async (req, res) => {
 
     const cacheKey = `current_${q}`;
     const cached = getCache(cacheKey);
-    if (cached) return res.json({ source: "cache", ...cached });
-
+    if (cached) {
+      return res.json({ source: "cache", ...cached });
+    }
     const apiKey = process.env.WEATHER_API_KEY;
     const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${q}&aqi=no`;
     console.log("Fetching current:", url);
@@ -25,12 +26,10 @@ router.get("/current", async (req, res) => {
     res.json({ source: "api", ...data });
   } catch (err) {
     console.error("Current weather error:", err);
-    res
-      .status(500)
-      .json({
-        error: "Server error fetching current weather",
-        details: err.message,
-      });
+    res.status(500).json({
+      error: "Server error fetching current weather",
+      details: err.message,
+    });
   }
 });
 
@@ -42,7 +41,9 @@ router.get("/forecast", async (req, res) => {
 
     const cacheKey = `forecast_${q}_${days}`;
     const cached = getCache(cacheKey);
-    if (cached) return res.json({ source: "cache", ...cached });
+    if (cached) {
+      return res.json({ source: "cache", ...cached });
+    }
 
     const apiKey = process.env.WEATHER_API_KEY;
     const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${q}&days=${days}&aqi=no&alerts=no`;
@@ -70,7 +71,7 @@ router.get("/history", async (req, res) => {
       return res.status(400).json({ error: "Missing city name or date" });
 
     const cacheKey = `history_${q}_${date}`;
-    const cached = get(cacheKey);
+    const cached = getCache(cacheKey);
     if (cached) return res.json({ source: "cache", ...cached });
 
     const apiKey = process.env.WEATHER_API_KEY;
@@ -80,7 +81,7 @@ router.get("/history", async (req, res) => {
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     const data = await response.json();
 
-    set(cacheKey, data);
+    setCache(cacheKey, data);
     res.json({ source: "api", ...data });
   } catch (err) {
     console.error("History error:", err);
@@ -108,16 +109,14 @@ router.get("/search", async (req, res) => {
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     const data = await response.json();
 
-    setCache(cacheKey, data); 
+    setCache(cacheKey, data);
     res.json({ source: "api", results: data });
   } catch (err) {
     console.error("Search error:", err);
-    res
-      .status(500)
-      .json({
-        error: "Server error fetching search results",
-        details: err.message,
-      });
+    res.status(500).json({
+      error: "Server error fetching search results",
+      details: err.message,
+    });
   }
 });
 

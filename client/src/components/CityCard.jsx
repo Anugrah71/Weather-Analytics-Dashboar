@@ -5,6 +5,7 @@ import {
 } from "../features/favorites/favoritesSlice";
 import { Star, Droplets, Wind } from "lucide-react";
 import { removeCityWeather } from "../features/weather/weatherSlice";
+import { tempUnits } from "../utils/tempUtils";
 
 const CityCard = ({
   city,
@@ -17,6 +18,8 @@ const CityCard = ({
 }) => {
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.favorites);
+  const { unit } = useSelector((state) => state.weather);
+
   const isFavorite = favorites.includes(city);
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
@@ -29,6 +32,7 @@ const CityCard = ({
   };
   return (
     <>
+    
       <div
         className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all cursor-pointer transform hover:scale-105"
         onClick={() => {
@@ -50,7 +54,11 @@ const CityCard = ({
           <div className="flex items-center space-x-3">
             <img src={icon} alt={condition} className="w-12 h-12" />
             <div>
-              <div className="text-2xl font-bold text-gray-800">{temp}°C</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {" "}
+                {tempUnits(temp, unit).toFixed(1)}°
+                {unit === "celsius" ? "C" : "F"}
+              </div>
               <div className="text-sm text-gray-600">{condition}</div>
             </div>
           </div>

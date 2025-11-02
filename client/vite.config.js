@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    proxy: { "/api": "http://localhost:4000" },
+    proxy: { "/api": "https://weather-analytics-dashboar.vercel.app/" },
   },
   plugins: [react()],
 });
